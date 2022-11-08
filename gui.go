@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"runtime"
 )
 
 var mainWindow fyne.Window
