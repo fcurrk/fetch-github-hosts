@@ -19,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"runtime"
 )
 
 var mainWindow fyne.Window
@@ -58,7 +57,7 @@ func bootGui() {
 
 	mainWindow.SetCloseIntercept(func() {
 //		mainWindow.Hide()
-                runtime.Goexit()
+                os.Exit()
 	})
 
 	mainWindow.CenterOnScreen()
