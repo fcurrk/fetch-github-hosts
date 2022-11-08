@@ -38,7 +38,7 @@ func bootGui() {
 	a := app.New()
 	a.Settings().SetTheme(&fghGuiTheme{})
 
-	mainWindow = a.NewWindow(fmt.Sprintf("Fetch Github Hosts - V%.1f", VERSION))
+	mainWindow = a.NewWindow(fmt.Sprintf("MiniYun Hosts - V%.1f", VERSION))
 	mainWindow.Resize(fyne.NewSize(800, 580))
 	mainWindow.SetIcon(logoResource)
 
@@ -47,7 +47,7 @@ func bootGui() {
 
 	tabs := container.NewAppTabs(
 		container.NewTabItem("客户端模式", guiClientMode()),
-		container.NewTabItem("服务端模式", guiServerMode()),
+//		container.NewTabItem("服务端模式", guiServerMode()),
 		container.NewTabItem("关于", container.NewVBox(
 			widget.NewLabel(""),
 			container.New(layout.NewCenterLayout(), logoImage),
@@ -55,10 +55,10 @@ func bootGui() {
 		)),
 	)
 
-//	mainWindow.SetCloseIntercept(func() {
-//	os.Exit()
+	mainWindow.SetCloseIntercept(func() {
+	os.Exit(0)
 //		mainWindow.Hide()
-//	})
+	})
 
 	mainWindow.CenterOnScreen()
 	mainWindow.SetContent(container.NewVBox(tabs))
@@ -113,7 +113,7 @@ func guiClientMode() (content fyne.CanvasObject) {
 	}
 
 	originMethodOpts := []string{
-		"官方指定hosts源",
+		"指定的hosts源",
 		"自定义hosts源",
 	}
 
@@ -184,9 +184,9 @@ func guiClientMode() (content fyne.CanvasObject) {
 
 	buttons := container.New(layout.NewGridLayout(3), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
 		if err := flushCleanGithubHosts(); err != nil {
-			showAlert("清除hosts中的github记录失败：" + err.Error())
+			showAlert("清除hosts记录失败：" + err.Error())
 		} else {
-			showAlert("hosts文件中的github记录已经清除成功！")
+			showAlert("hosts文件中的记录已经清除成功！")
 		}
 	}))
 

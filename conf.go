@@ -34,8 +34,8 @@ func LoadFetchConf() *FetchConf {
 	viper.SetConfigName("conf")
 	viper.SetConfigType("yaml")
 	viper.SetDefault("client.interval", 60)
-	viper.SetDefault("client.method", "官方指定hosts源")
-	viper.SetDefault("client.selectorigin", "FetchGithubHosts")
+	viper.SetDefault("client.method", "指定的hosts源")
+	viper.SetDefault("client.selectorigin", "MiniYun-Hosts")
 	viper.SetDefault("server.interval", 60)
 	viper.SetDefault("server.port", 9898)
 	var fileNotExits bool

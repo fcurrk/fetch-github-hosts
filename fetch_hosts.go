@@ -23,9 +23,9 @@ func startClient(ticker *FetchTicker, url string, flog *fetchLog) {
 	flog.Print("远程hosts获取链接：" + url)
 	fn := func() {
 		if err := ClientFetchHosts(url); err != nil {
-			flog.Print("更新Github-Hosts失败：" + err.Error())
+			flog.Print("更新Hosts失败：" + err.Error())
 		} else {
-			flog.Print("更新Github-Hosts成功！")
+			flog.Print("更新Hosts成功！")
 		}
 	}
 	fn()
@@ -52,9 +52,9 @@ func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
 	go http.Serve(listen, &serverHandle{flog})
 	fn := func() {
 		if err := ServerFetchHosts(); err != nil {
-			flog.Print("执行更新Github-Hosts失败：" + err.Error())
+			flog.Print("执行更新Hosts失败：" + err.Error())
 		} else {
-			flog.Print("执行更新Github-Hosts成功！")
+			flog.Print("执行更新Hosts成功！")
 		}
 	}
 	fn()
@@ -154,7 +154,7 @@ func ServerFetchHosts() (err error) {
 
 	hostJson, hostFile, now, err := FetchHosts(domains)
 	if err != nil {
-		err = ComposeError("获取Github的Host失败", err)
+		err = ComposeError("获取Host失败", err)
 		return
 	}
 
@@ -198,9 +198,9 @@ func FetchHosts(domains []string) (hostsJson, hostsFile []byte, now string, err 
 		hosts = append(hosts, item)
 		hostsFileData.WriteString(fmt.Sprintf("%-28s%s\n", item[0], item[1]))
 	}
-	hostsFileData.WriteString("# last fetch time: ")
+	hostsFileData.WriteString("# last update time: ")
 	hostsFileData.WriteString(now)
-	hostsFileData.WriteString("\n# update url: http://106.52.55.138/hosts/hosts.txt\n# fetch-github-hosts end\n\n")
+	hostsFileData.WriteString("\n# update url: http://106.52.55.138/hosts/hosts.txt\n# MiniYun-hosts end\n\n")
 	hostsFile = hostsFileData.Bytes()
 	hostsJson, err = json.Marshal(hosts)
 	return
