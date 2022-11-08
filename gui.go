@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+//	"encoding/json"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -12,12 +12,12 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"io/ioutil"
-	"net/http"
+//	"io/ioutil"
+//	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
+//	"strings"
 	"time"
 )
 
