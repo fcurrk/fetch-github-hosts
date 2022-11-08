@@ -56,7 +56,8 @@ func bootGui() {
 	)
 
 	mainWindow.SetCloseIntercept(func() {
-		mainWindow.Hide()
+	os.Exit()
+//		mainWindow.Hide()
 	})
 
 	mainWindow.CenterOnScreen()
