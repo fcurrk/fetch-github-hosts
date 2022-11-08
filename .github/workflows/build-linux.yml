@@ -1,4 +1,4 @@
-name: Build for Linux & Windows
+name: Build for Linux
 
 on: workflow_dispatch
 
