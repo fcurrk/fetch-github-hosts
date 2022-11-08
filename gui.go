@@ -55,10 +55,10 @@ func bootGui() {
 		)),
 	)
 
-	mainWindow.SetCloseIntercept(func() {
-	os.Exit()
+//	mainWindow.SetCloseIntercept(func() {
+//	os.Exit()
 //		mainWindow.Hide()
-	})
+//	})
 
 	mainWindow.CenterOnScreen()
 	mainWindow.SetContent(container.NewVBox(tabs))
