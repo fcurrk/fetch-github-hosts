@@ -31,9 +31,6 @@ jobs:
       - name: Package for Windows
         run: fyne-cross windows -arch=*
 
-      - name: Package for Linux
-        run: fyne-cross linux -arch=*
-
       - name: Create pkg dist dir
         run: mkdir pkg-dist
 

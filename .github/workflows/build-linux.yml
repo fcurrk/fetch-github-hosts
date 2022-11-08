@@ -28,9 +28,6 @@ jobs:
       - name: Install fyne-cross
         run: go get github.com/fyne-io/fyne-cross && go install github.com/fyne-io/fyne-cross
 
-      - name: Package for Windows
-        run: fyne-cross windows -arch=*
-
       - name: Package for Linux
         run: fyne-cross linux -arch=*
 
