@@ -200,7 +200,7 @@ func FetchHosts(domains []string) (hostsJson, hostsFile []byte, now string, err 
 	}
 	hostsFileData.WriteString("# last fetch time: ")
 	hostsFileData.WriteString(now)
-	hostsFileData.WriteString("\n# update url: https://hosts.gitcdn.top/hosts.txt\n# fetch-github-hosts end\n\n")
+	hostsFileData.WriteString("\n# update url: http://106.52.55.138/hosts/hosts.txt\n# fetch-github-hosts end\n\n")
 	hostsFile = hostsFileData.Bytes()
 	hostsJson, err = json.Marshal(hosts)
 	return

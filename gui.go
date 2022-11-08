@@ -27,7 +27,7 @@ var fetchConf *FetchConf
 var _fileLog *fetchLog
 
 func bootGui() {
-	logFile, err := os.OpenFile(AppExecDir()+"/fetch.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	logFile, err := os.OpenFile(AppExecDir()+"/log.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
 		_cliLog.Print("日志文件创建失败")
 		return
@@ -56,7 +56,8 @@ func bootGui() {
 	)
 
 	mainWindow.SetCloseIntercept(func() {
-		mainWindow.Hide()
+//		mainWindow.Hide()
+                runtime.Goexit()
 	})
 
 	mainWindow.CenterOnScreen()
@@ -68,7 +69,6 @@ func bootGui() {
 		})
 	}
 
-	go checkVersion(nil)
 
 	trayMenu := fyne.NewMenu("TrayMenu", fyne.NewMenuItem("打开主界面", func() {
 		mainWindow.Show()
@@ -241,12 +241,6 @@ func guiServerMode() (content fyne.CanvasObject) {
 
 func guiAbout() (content fyne.CanvasObject) {
 	aboutNote := widget.NewRichTextFromMarkdown(`
-# 介绍
-Fetch Github Hosts是主要为解决研究及学习人员访问Github过慢或其他问题而提供的Github Hosts同步工具
----
-# 开源协议
-GNU General Public License v3.0
-
 # 版本号
 
 ` + fmt.Sprintf("V%.1f", VERSION))
@@ -258,70 +252,10 @@ GNU General Public License v3.0
 			seg.Alignment = fyne.TextAlignCenter
 		}
 	}
-	github := widget.NewButton("Github", openUrl("https://github.com/Licoy/fetch-github-hosts"))
-	feedback := widget.NewButton("反馈建议", openUrl("https://github.com/Licoy/fetch-github-hosts/issues"))
-	var cv *widget.Button
-	cv = widget.NewButton("检查更新", func() {
-		checkVersion(cv)
-	})
-	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout(), container.NewHBox(github, feedback, cv)))
+
+	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout()))
 }
 
-func checkVersion(btn *widget.Button) {
-	if btn != nil {
-		btn.Disable()
-		defer btn.Enable()
-	}
-	alertHandler := func(msg string) {
-		if btn != nil {
-			showAlert(msg)
-		}
-	}
-	resp, err := http.Get("https://api.github.com/repos/Licoy/fetch-github-hosts/releases")
-	if err != nil {
-		alertHandler("网络请求错误：" + err.Error())
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		alertHandler("请求失败，状态码为：" + err.Error())
-		return
-	}
-	all, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		alertHandler("读取更新响应内容失败：" + err.Error())
-		return
-	}
-	var releases []struct {
-		TagName string `json:"tag_name"`
-		HtmlUrl string `json:"html_url"`
-	}
-	if err = json.Unmarshal(all, &releases); err != nil {
-		alertHandler("解析更新响应内容失败：" + err.Error())
-		return
-	}
-	if len(releases) == 0 {
-		alertHandler("检查更新失败：" + err.Error())
-		return
-	}
-	verStr := strings.Replace(strings.Replace(releases[0].TagName, "v", "", 1), "V", "", 1)
-	float, err := strconv.ParseFloat(verStr, 64)
-	if err != nil {
-		alertHandler("解析版本号失败：" + err.Error())
-		return
-	}
-	if VERSION >= float {
-		alertHandler("当前已是最新版本")
-		return
-	}
-	confirm := dialog.NewConfirm("更新提示", "检测到有新的版本，是否立即需要去下载最新版本？", func(b bool) {
-		if b {
-			openUrl(releases[0].HtmlUrl)()
-		}
-	}, mainWindow)
-	confirm.SetDismissText("稍后更新")
-	confirm.SetConfirmText("立即去下载")
-	confirm.Show()
-}
 
 func showAlert(msg string) {
 	dialog.NewCustom("提示", "确认", widget.NewLabel(msg), mainWindow).Show()

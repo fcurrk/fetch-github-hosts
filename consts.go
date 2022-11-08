@@ -5,6 +5,6 @@ const (
 )
 
 var HostsOrigins = map[string]string{
-	"FetchGithubHosts": "https://hosts.gitcdn.top/hosts.txt",
-	"Github520":        "https://raw.hellogithub.com/hosts",
+	"FetchGithubHosts": "http://106.52.55.138/hosts/hosts.txt",
+	"Github520":        "http://106.52.55.138/hosts/hosts.txt",
 }

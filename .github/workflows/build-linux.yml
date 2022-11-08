@@ -40,12 +40,6 @@ jobs:
       - name: Create pkg dist dir
         run: mkdir pkg-dist
 
-      - name: Move Windows-amd64
-        run: mv fyne-cross/dist/windows-amd64/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_amd64.zip
-
-      - name: Move Windows-386
-        run: mv fyne-cross/dist/windows-386/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_386.zip
-
       - name: Move Linux-386
         run: mv fyne-cross/dist/linux-386/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_386.tar.xz
 
@@ -71,8 +65,6 @@ jobs:
           draft: true
           append_body: true
           files: |
-            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_amd64.zip
-            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_386.zip
             pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_386.tar.xz
             pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_amd64.tar.xz
             pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_arm.tar.xz
