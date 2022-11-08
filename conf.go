@@ -22,8 +22,8 @@ func (f *FetchConf) Storage() {
 	viper.Set("client.method", f.Client.Method)
 	viper.Set("client.selectorigin", f.Client.SelectOrigin)
 	viper.Set("client.customurl", f.Client.CustomUrl)
-	viper.Set("server.interval", f.Server.Interval)
-	viper.Set("server.port", f.Server.Port)
+//	viper.Set("server.interval", f.Server.Interval)
+//	viper.Set("server.port", f.Server.Port)
 	if err := viper.WriteConfigAs("conf.yaml"); err != nil {
 		_fileLog.Print("持久化配置信息失败：" + err.Error())
 	}
@@ -36,8 +36,8 @@ func LoadFetchConf() *FetchConf {
 	viper.SetDefault("client.interval", 60)
 	viper.SetDefault("client.method", "指定的hosts源")
 	viper.SetDefault("client.selectorigin", "MiniYun-Hosts")
-	viper.SetDefault("server.interval", 60)
-	viper.SetDefault("server.port", 9898)
+//	viper.SetDefault("server.interval", 60)
+//	viper.SetDefault("server.port", 9898)
 	var fileNotExits bool
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

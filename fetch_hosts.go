@@ -250,8 +250,8 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 	return
 }
 
-func getGithubDomains() (domains []string, err error) {
-	fileData, err := GetExecOrEmbedFile(&assetsFs, "domains.json")
+func getGithubDomains() (domains string, err error) {
+	fileData, err := GetExecOrEmbedFile(&assetsFs, domains)
 	if err != nil {
 		err = ComposeError("读取文件domains.json错误", err)
 		return
