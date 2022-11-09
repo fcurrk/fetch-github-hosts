@@ -52,7 +52,8 @@ func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
 	flog.Print(fmt.Sprintf("hosts的JSON格式链接：http://127.0.0.1:%d/hosts.json", port))
 	go http.Serve(listen, &serverHandle{flog})
 	fn := func() {
-		if err := ServerFetchHosts(); err != nil {
+		jsonurl := "http://127.0.0.1:" + port + "/domains.json"
+		if err := ServerFetchHosts(jsonurl); err != nil {
 			flog.Print("执行更新Hosts失败：" + err.Error())
 		} else {
 			flog.Print("执行更新Hosts成功！")
@@ -146,9 +147,9 @@ func ClientFetchHosts(url string) (err error) {
 }
 
 // ServerFetchHosts 服务端获取github最新的hosts并写入到对应文件及更新首页
-func ServerFetchHosts() (err error) {
+func ServerFetchHosts(url string) (err error) {
 	execDir := AppExecDir()
-	domains, err := getGithubDomains()
+	domains, err := getGithubDomains(url)
 	if err != nil {
 		return
 	}
@@ -214,8 +215,8 @@ func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
 		err = ComposeError("读取文件hosts错误", err)
 		return
 	}
-        
-	domains, err := getGithubDomains(url)
+        dojson := url + "/hosts/domains.json"       
+	domains, err := getGithubDomains(dojson)
 	if err != nil {
 		return
 	}
@@ -252,9 +253,7 @@ func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
 }
 
 func getGithubDomains(url string) (domains []string , err error) {
-        dojson := url + "/hosts/domains.json"
-
-	resp, err := http.Get(dojson)
+	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		err = ComposeError("获取domains.json失败", err)
 		return
@@ -273,8 +272,8 @@ func getGithubDomains(url string) (domains []string , err error) {
 	return
 }
 
-func flushCleanGithubHosts() (err error) {
-	hosts, err := getCleanGithubHosts()
+func flushCleanGithubHosts(url string) (err error) {
+	hosts, err := getCleanGithubHosts(url)
 	if err != nil {
 		return
 	}

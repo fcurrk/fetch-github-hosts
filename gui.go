@@ -183,7 +183,12 @@ func guiClientMode() (content fyne.CanvasObject) {
 	stopBtn.Disable()
 
 	buttons := container.New(layout.NewGridLayout(3), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
-		if err := flushCleanGithubHosts(); err != nil {
+		if isCustomOrigin {
+			url := customUrl
+		} else {
+			url := selectUrl
+		}
+		if err := flushCleanGithubHosts(url); err != nil {
 			showAlert("清除hosts记录失败：" + err.Error())
 		} else {
 			showAlert("hosts文件中的记录已经清除成功！")
