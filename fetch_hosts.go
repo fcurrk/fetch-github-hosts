@@ -52,7 +52,7 @@ func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
 	flog.Print(fmt.Sprintf("hosts的JSON格式链接：http://127.0.0.1:%d/hosts.json", port))
 	go http.Serve(listen, &serverHandle{flog})
 	fn := func() {
-		jsonurl := "http://127.0.0.1:" + port + "/domains.json"
+		jsonurl := fmt.Sprintf("http://127.0.0.1:%d/domains.json", port)
 		if err := ServerFetchHosts(jsonurl); err != nil {
 			flog.Print("执行更新Hosts失败：" + err.Error())
 		} else {

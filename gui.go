@@ -102,7 +102,7 @@ func guiClientMode() (content fyne.CanvasObject) {
 	logs, addFn := newLogScrollComponent(fyne.NewSize(800, 260))
 	var cLog = NewFetchLog(NewGuiLogWriter(addFn))
 	var startBtn, stopBtn *widget.Button
-	var interval, customUrl, selectUrl = strconv.Itoa(fetchConf.Client.Interval), fetchConf.Client.CustomUrl, fetchConf.Client.SelectOrigin
+	var jsonurl, interval, customUrl, selectUrl = strconv.Itoa(fetchConf.Client.Interval), fetchConf.Client.CustomUrl, fetchConf.Client.SelectOrigin
 	var isCustomOrigin bool
 	intervalInput, urlInput := widget.NewEntryWithData(binding.BindString(&interval)), widget.NewEntryWithData(binding.BindString(&customUrl))
 	var ticker *FetchTicker
@@ -184,11 +184,11 @@ func guiClientMode() (content fyne.CanvasObject) {
 
 	buttons := container.New(layout.NewGridLayout(3), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
 		if isCustomOrigin {
-			url := customUrl
+			jsonurl = customUrl
 		} else {
-			url := selectUrl
+			jsonurl = selectUrl
 		}
-		if err := flushCleanGithubHosts(url); err != nil {
+		if err := flushCleanGithubHosts(jsonurl); err != nil {
 			showAlert("清除hosts记录失败：" + err.Error())
 		} else {
 			showAlert("hosts文件中的记录已经清除成功！")
