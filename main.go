@@ -35,9 +35,9 @@ func bootCli(args *CmdArgs) {
 			return
 		}
 	}
-	_cliLog.Print(fmt.Sprintf("开始程序监听，当前以%d分钟更新一次Github-Hosts！", args.FetchInterval))
+	_cliLog.Print(fmt.Sprintf("开始程序监听，当前以%d分钟更新一次Hosts！", args.FetchInterval))
 	_cliLog.Print("请不要关闭此窗口以保持再前台运行")
-	_cliLog.Print("可以将此程序注册为服务，具体请参考项目说明：https://github.com/Licoy/fetch-github-hosts")
+	_cliLog.Print("可以将此程序注册为服务，后台运行")
 
 	ticker := NewFetchTicker(args.FetchInterval)
 	if args.Mode == "server" {

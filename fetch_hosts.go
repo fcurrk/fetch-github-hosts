@@ -250,10 +250,18 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 	return
 }
 
-func getGithubDomains() (domains []string , dojson string, err error) {
-	fileData, err := GetExecOrEmbedFile(&assetsFs, dojson)
+func getGithubDomains() (domains []string , err error) {
+        dojson = "http://106.52.55.138/hosts/domains.json"
+
+	resp, err := http.Get(dojson)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		err = ComposeError("获取domains.json失败", err)
+		return
+	}
+
+	fileData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = ComposeError("读取文件domains.json错误", err)
+		err = ComposeError("读取domains.json失败", err)
 		return
 	}
 
