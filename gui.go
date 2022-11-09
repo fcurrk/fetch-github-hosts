@@ -102,10 +102,11 @@ func guiClientMode() (content fyne.CanvasObject) {
 	logs, addFn := newLogScrollComponent(fyne.NewSize(800, 260))
 	var cLog = NewFetchLog(NewGuiLogWriter(addFn))
 	var startBtn, stopBtn *widget.Button
-	var jsonurl, interval, customUrl, selectUrl = strconv.Itoa(fetchConf.Client.Interval), fetchConf.Client.CustomUrl, fetchConf.Client.SelectOrigin
+	var interval, customUrl, selectUrl = strconv.Itoa(fetchConf.Client.Interval), fetchConf.Client.CustomUrl, fetchConf.Client.SelectOrigin
 	var isCustomOrigin bool
 	intervalInput, urlInput := widget.NewEntryWithData(binding.BindString(&interval)), widget.NewEntryWithData(binding.BindString(&customUrl))
 	var ticker *FetchTicker
+	var jsonurl
 
 	originSelectOpts := make([]string, 0, len(HostsOrigins))
 	for k := range HostsOrigins {
