@@ -18,7 +18,8 @@ func (f *fghGuiTheme) Font(s fyne.TextStyle) fyne.Resource {
 }
 
 func (*fghGuiTheme) Color(c fyne.ThemeColorName, _ fyne.ThemeVariant) color.Color {
-	return theme.DefaultTheme().Color(c, theme.VariantDark)
+//	return theme.DefaultTheme().Color(c, theme.VariantDark)
+	return theme.DefaultTheme().Color(c, theme.VariantLight)
 }
 
 func (*fghGuiTheme) Icon(n fyne.ThemeIconName) fyne.Resource {

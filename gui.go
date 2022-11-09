@@ -27,12 +27,12 @@ var fetchConf *FetchConf
 var _fileLog *fetchLog
 
 func bootGui() {
-	logFile, err := os.OpenFile(AppExecDir()+"/log.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		_cliLog.Print("日志文件创建失败")
-		return
-	}
-	_fileLog = &fetchLog{w: logFile}
+//	logFile, err := os.OpenFile(AppExecDir()+"/log.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+//	if err != nil {
+//		_cliLog.Print("日志文件创建失败")
+//		return
+//	}
+//	_fileLog = &fetchLog{w: logFile}
 	fetchConf = LoadFetchConf()
 	logoResource := getLogoResource()
 	a := app.New()

@@ -20,7 +20,8 @@ const (
 )
 
 func startClient(ticker *FetchTicker, url string, flog *fetchLog) {
-	flog.Print("远程hosts获取链接：" + url)
+        murl := url + "/hosts/hosts.txt" 
+	flog.Print("远程hosts获取链接：" + murl)
 	fn := func() {
 		if err := ClientFetchHosts(url); err != nil {
 			flog.Print("更新Hosts失败：" + err.Error())
@@ -105,12 +106,12 @@ func (s *serverHandle) ServeHTTP(resp http.ResponseWriter, request *http.Request
 
 // ClientFetchHosts 获取最新的host并写入hosts文件
 func ClientFetchHosts(url string) (err error) {
-	hosts, err := getCleanGithubHosts()
+	hosts, err := getCleanGithubHosts(url)
 	if err != nil {
 		return
 	}
-
-	resp, err := http.Get(url)
+        murl := url + "/hosts/hosts.txt" 
+	resp, err := http.Get(murl)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		err = ComposeError("获取最新的hosts失败", err)
 		return
@@ -206,15 +207,15 @@ func FetchHosts(domains []string) (hostsJson, hostsFile []byte, now string, err 
 	return
 }
 
-func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
+func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
 	hostsPath := GetSystemHostsPath()
 	hostsBytes, err := ioutil.ReadFile(hostsPath)
 	if err != nil {
 		err = ComposeError("读取文件hosts错误", err)
 		return
 	}
-
-	domains, err := getGithubDomains()
+        
+	domains, err := getGithubDomains(url)
 	if err != nil {
 		return
 	}
@@ -250,8 +251,8 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 	return
 }
 
-func getGithubDomains() (domains []string , err error) {
-        dojson := "http://106.52.55.138/hosts/domains.json"
+func getGithubDomains(url string) (domains []string , err error) {
+        dojson := url + "/hosts/domains.json"
 
 	resp, err := http.Get(dojson)
 	if err != nil || resp.StatusCode != http.StatusOK {

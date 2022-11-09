@@ -5,6 +5,6 @@ const (
 )
 
 var HostsOrigins = map[string]string{
-	"MiniYun-Hosts": "http://106.52.55.138/hosts/hosts.txt",
-	"MiniYun-Hosts-2": "http://106.52.55.138/hosts/hosts.txt",
+	"MiniYun-Hosts": "http://106.52.55.138",
+	"Beta.gs-Hosts": "https://api.beta.gs",
 }
