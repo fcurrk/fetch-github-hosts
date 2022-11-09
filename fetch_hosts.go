@@ -259,12 +259,12 @@ func getGithubDomains() (domains []string , err error) {
 		return
 	}
 
-	fileData, err := ioutil.ReadAll(resp.Body)
+	fetchData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		err = ComposeError("读取domains.json失败", err)
 		return
 	}
-
+        fileData = []byte(string(fetchData))
 	if err = json.Unmarshal(fileData, &domains); err != nil {
 		err = ComposeError("domain.json解析失败", err)
 		return
