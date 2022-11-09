@@ -46,7 +46,7 @@ func bootGui() {
 	logoImage.SetMinSize(fyne.NewSize(240, 240))
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("客户端模式", guiClientMode()),
+		container.NewTabItem("运行模式", guiClientMode()),
 //		container.NewTabItem("服务端模式", guiServerMode()),
 		container.NewTabItem("关于", container.NewVBox(
 			widget.NewLabel(""),
@@ -245,9 +245,13 @@ func guiServerMode() (content fyne.CanvasObject) {
 
 func guiAbout() (content fyne.CanvasObject) {
 	aboutNote := widget.NewRichTextFromMarkdown(`
-# 版本号
-
-` + fmt.Sprintf("V%.1f", VERSION))
+# MiniYun Hosts
+Hosts同步工具，解决部分网站无法访问或访问过慢问题。
+# 版本
+` + fmt.Sprintf("V%.1f", VERSION) +
+`Powered by Minijer
+基于Licoy开源fetch-github-hosts项目，非常感谢。
+如有问题，请联系Email:minijer@beta.gs`)
 	for i := range aboutNote.Segments {
 		if seg, ok := aboutNote.Segments[i].(*widget.TextSegment); ok {
 			seg.Style.Alignment = fyne.TextAlignCenter
