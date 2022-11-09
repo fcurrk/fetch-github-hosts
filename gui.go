@@ -106,7 +106,6 @@ func guiClientMode() (content fyne.CanvasObject) {
 	var isCustomOrigin bool
 	intervalInput, urlInput := widget.NewEntryWithData(binding.BindString(&interval)), widget.NewEntryWithData(binding.BindString(&customUrl))
 	var ticker *FetchTicker
-	var jsonurl
 
 	originSelectOpts := make([]string, 0, len(HostsOrigins))
 	for k := range HostsOrigins {
@@ -184,11 +183,10 @@ func guiClientMode() (content fyne.CanvasObject) {
 	stopBtn.Disable()
 
 	buttons := container.New(layout.NewGridLayout(3), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
+	        jsonurl := selectUrl
 		if isCustomOrigin {
 			jsonurl = customUrl
-		} else {
-			jsonurl = selectUrl
-		}
+		} 
 		if err := flushCleanGithubHosts(jsonurl); err != nil {
 			showAlert("清除hosts记录失败：" + err.Error())
 		} else {
