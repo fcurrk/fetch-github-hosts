@@ -251,7 +251,7 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 }
 
 func getGithubDomains() (domains []string , err error) {
-        dojson = "http://106.52.55.138/hosts/domains.json"
+        dojson := "http://106.52.55.138/hosts/domains.json"
 
 	resp, err := http.Get(dojson)
 	if err != nil || resp.StatusCode != http.StatusOK {
@@ -264,7 +264,7 @@ func getGithubDomains() (domains []string , err error) {
 		err = ComposeError("读取domains.json失败", err)
 		return
 	}
-        fileData = []byte(string(fetchData))
+        fileData := []byte(string(fetchData))
 	if err = json.Unmarshal(fileData, &domains); err != nil {
 		err = ComposeError("domain.json解析失败", err)
 		return
