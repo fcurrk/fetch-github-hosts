@@ -251,7 +251,8 @@ Hosts同步工具，解决部分网站无法访问或访问过慢问题。
 # 版本
 ` + fmt.Sprintf("V%.1f", VERSION) +
 
-`Powered by Minijer
+`
+Powered by Minijer
 
 基于Licoy开源fetch-github-hosts项目，非常感谢。
 
