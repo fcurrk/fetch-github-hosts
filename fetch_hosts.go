@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/h2non/filetype"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -19,14 +19,13 @@ const (
 	Darwin  = "darwin"
 )
 
-func startClient(ticker *FetchTicker, url string, flog *fetchLog) {
-        murl := url + "/hosts/hosts.txt" 
-	flog.Print("远程hosts获取链接：" + murl)
+func startClient(ticker *FetchTicker, url string, flog *FetchLog) {
+	flog.Print("远程hosts获取链接：" + url)
 	fn := func() {
 		if err := ClientFetchHosts(url); err != nil {
-			flog.Print("更新Hosts失败：" + err.Error())
+			flog.Print("更新Github-Hosts失败：" + err.Error())
 		} else {
-			flog.Print("更新Hosts成功！")
+			flog.Print("更新Github-Hosts成功！")
 		}
 	}
 	fn()
@@ -41,7 +40,7 @@ func startClient(ticker *FetchTicker, url string, flog *fetchLog) {
 	}
 }
 
-func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
+func startServer(ticker *FetchTicker, port int, flog *FetchLog) {
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		fmt.Println("服务启动失败（可能是目标端口已被占用）：", err.Error())
@@ -52,11 +51,10 @@ func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
 	flog.Print(fmt.Sprintf("hosts的JSON格式链接：http://127.0.0.1:%d/hosts.json", port))
 	go http.Serve(listen, &serverHandle{flog})
 	fn := func() {
-		jsonurl := fmt.Sprintf("http://127.0.0.1:%d/domains.json", port)
-		if err := ServerFetchHosts(jsonurl); err != nil {
-			flog.Print("执行更新Hosts失败：" + err.Error())
+		if err := ServerFetchHosts(); err != nil {
+			flog.Print("执行更新Github-Hosts失败：" + err.Error())
 		} else {
-			flog.Print("执行更新Hosts成功！")
+			flog.Print("执行更新Github-Hosts成功！")
 		}
 	}
 	fn()
@@ -76,7 +74,7 @@ func startServer(ticker *FetchTicker, port int, flog *fetchLog) {
 }
 
 type serverHandle struct {
-	flog *fetchLog
+	flog *FetchLog
 }
 
 func (s *serverHandle) ServeHTTP(resp http.ResponseWriter, request *http.Request) {
@@ -85,7 +83,7 @@ func (s *serverHandle) ServeHTTP(resp http.ResponseWriter, request *http.Request
 		if p == "/" {
 			p = "/index.html"
 		}
-		file, err := ioutil.ReadFile(AppExecDir() + p)
+		file, err := os.ReadFile(AppExecDir() + p)
 		if err != nil {
 			resp.WriteHeader(http.StatusInternalServerError)
 			resp.Write([]byte("server error"))
@@ -107,18 +105,18 @@ func (s *serverHandle) ServeHTTP(resp http.ResponseWriter, request *http.Request
 
 // ClientFetchHosts 获取最新的host并写入hosts文件
 func ClientFetchHosts(url string) (err error) {
-	hosts, err := getCleanGithubHosts(url)
+	hosts, err := getCleanGithubHosts()
 	if err != nil {
 		return
 	}
-        murl := url + "/hosts/hosts.txt" 
-	resp, err := http.Get(murl)
+
+	resp, err := http.Get(url)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		err = ComposeError("获取最新的hosts失败", err)
 		return
 	}
 
-	fetchHosts, err := ioutil.ReadAll(resp.Body)
+	fetchHosts, err := io.ReadAll(resp.Body)
 	if err != nil {
 		err = ComposeError("读取最新的hosts失败", err)
 		return
@@ -138,7 +136,7 @@ func ClientFetchHosts(url string) (err error) {
 			hosts.WriteString(newlineChar)
 		}
 	}
-	if err = ioutil.WriteFile(GetSystemHostsPath(), hosts.Bytes(), os.ModeType); err != nil {
+	if err = os.WriteFile(GetSystemHostsPath(), hosts.Bytes(), os.ModeType); err != nil {
 		err = ComposeError("写入hosts文件失败，请用超级管理员身份启动本程序！", err)
 		return
 	}
@@ -147,25 +145,25 @@ func ClientFetchHosts(url string) (err error) {
 }
 
 // ServerFetchHosts 服务端获取github最新的hosts并写入到对应文件及更新首页
-func ServerFetchHosts(url string) (err error) {
+func ServerFetchHosts() (err error) {
 	execDir := AppExecDir()
-	domains, err := getGithubDomains(url)
+	domains, err := getGithubDomains()
 	if err != nil {
 		return
 	}
 
 	hostJson, hostFile, now, err := FetchHosts(domains)
 	if err != nil {
-		err = ComposeError("获取Host失败", err)
+		err = ComposeError("获取Github的Host失败", err)
 		return
 	}
 
-	if err = ioutil.WriteFile(execDir+"/hosts.json", hostJson, 0775); err != nil {
+	if err = os.WriteFile(execDir+"/hosts.json", hostJson, 0775); err != nil {
 		err = ComposeError("写入数据到hosts.json文件失败", err)
 		return
 	}
 
-	if err = ioutil.WriteFile(execDir+"/hosts.txt", hostFile, 0775); err != nil {
+	if err = os.WriteFile(execDir+"/hosts.txt", hostFile, 0775); err != nil {
 		err = ComposeError("写入数据到hosts.txt文件失败", err)
 		return
 	}
@@ -178,7 +176,7 @@ func ServerFetchHosts(url string) (err error) {
 	}
 
 	templateData := strings.Replace(string(templateFile), "<!--time-->", now, 1)
-	if err = ioutil.WriteFile(execDir+"/index.html", []byte(templateData), 0775); err != nil {
+	if err = os.WriteFile(execDir+"/index.html", []byte(templateData), 0775); err != nil {
 		err = ComposeError("写入更新信息到首页文件失败", err)
 		return
 	}
@@ -200,23 +198,23 @@ func FetchHosts(domains []string) (hostsJson, hostsFile []byte, now string, err 
 		hosts = append(hosts, item)
 		hostsFileData.WriteString(fmt.Sprintf("%-28s%s\n", item[0], item[1]))
 	}
-	hostsFileData.WriteString("# last update time: ")
+	hostsFileData.WriteString("# last fetch time: ")
 	hostsFileData.WriteString(now)
-	hostsFileData.WriteString("\n# update url: http://106.52.55.138/hosts/hosts.txt\n# MiniYun-hosts end\n\n")
+	hostsFileData.WriteString("\n# update url: https://hosts.gitcdn.top/hosts.txt\n# fetch-github-hosts end\n\n")
 	hostsFile = hostsFileData.Bytes()
 	hostsJson, err = json.Marshal(hosts)
 	return
 }
 
-func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
+func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 	hostsPath := GetSystemHostsPath()
-	hostsBytes, err := ioutil.ReadFile(hostsPath)
+	hostsBytes, err := os.ReadFile(hostsPath)
 	if err != nil {
 		err = ComposeError("读取文件hosts错误", err)
 		return
 	}
-        dojson := url + "/hosts/domains.json"       
-	domains, err := getGithubDomains(dojson)
+
+	domains, err := getGithubDomains()
 	if err != nil {
 		return
 	}
@@ -252,19 +250,13 @@ func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
 	return
 }
 
-func getGithubDomains(url string) (domains []string , err error) {
-	resp, err := http.Get(url)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		err = ComposeError("获取domains.json失败", err)
+func getGithubDomains() (domains []string, err error) {
+	fileData, err := GetExecOrEmbedFile(&assetsFs, "assets/domains.json")
+	if err != nil {
+		err = ComposeError("读取文件domains.json错误", err)
 		return
 	}
 
-	fetchData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		err = ComposeError("读取domains.json失败", err)
-		return
-	}
-        fileData := []byte(string(fetchData))
 	if err = json.Unmarshal(fileData, &domains); err != nil {
 		err = ComposeError("domain.json解析失败", err)
 		return
@@ -272,12 +264,12 @@ func getGithubDomains(url string) (domains []string , err error) {
 	return
 }
 
-func flushCleanGithubHosts(url string) (err error) {
-	hosts, err := getCleanGithubHosts(url)
+func flushCleanGithubHosts() (err error) {
+	hosts, err := getCleanGithubHosts()
 	if err != nil {
 		return
 	}
-	if err = ioutil.WriteFile(GetSystemHostsPath(), hosts.Bytes(), os.ModeType); err != nil {
+	if err = os.WriteFile(GetSystemHostsPath(), hosts.Bytes(), os.ModeType); err != nil {
 		err = ComposeError("写入hosts文件失败，请用超级管理员身份启动本程序！", err)
 	}
 	return

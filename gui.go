@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"encoding/json"
+	"encoding/json"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -12,33 +12,33 @@ import (
 	"fyne.io/fyne/v2/driver/desktop"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-//	"io/ioutil"
-//	"net/http"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-//	"strings"
+	"strings"
 	"time"
 )
 
 var mainWindow fyne.Window
 var fetchConf *FetchConf
 
-var _fileLog *fetchLog
+var _fileLog *FetchLog
 
 func bootGui() {
-//	logFile, err := os.OpenFile(AppExecDir()+"/log.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-//	if err != nil {
-//		_cliLog.Print("日志文件创建失败")
-//		return
-//	}
-//	_fileLog = &fetchLog{w: logFile}
+	logFile, err := os.OpenFile(AppExecDir()+"/fetch.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		_cliLog.Print("日志文件创建失败")
+		return
+	}
+	_fileLog = &FetchLog{w: logFile}
 	fetchConf = LoadFetchConf()
 	logoResource := getLogoResource()
 	a := app.New()
 	a.Settings().SetTheme(&fghGuiTheme{})
 
-	mainWindow = a.NewWindow(fmt.Sprintf("MiniYun Hosts - V%.1f", VERSION))
+	mainWindow = a.NewWindow(fmt.Sprintf("Fetch Github Hosts - V%.1f", VERSION))
 	mainWindow.Resize(fyne.NewSize(800, 580))
 	mainWindow.SetIcon(logoResource)
 
@@ -46,8 +46,8 @@ func bootGui() {
 	logoImage.SetMinSize(fyne.NewSize(240, 240))
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("运行模式", guiClientMode()),
-//		container.NewTabItem("服务端模式", guiServerMode()),
+		container.NewTabItem("客户端模式", guiClientMode()),
+		container.NewTabItem("服务端模式", guiServerMode()),
 		container.NewTabItem("关于", container.NewVBox(
 			widget.NewLabel(""),
 			container.New(layout.NewCenterLayout(), logoImage),
@@ -56,8 +56,7 @@ func bootGui() {
 	)
 
 	mainWindow.SetCloseIntercept(func() {
-	os.Exit(0)
-//		mainWindow.Hide()
+		mainWindow.Hide()
 	})
 
 	mainWindow.CenterOnScreen()
@@ -69,6 +68,7 @@ func bootGui() {
 		})
 	}
 
+	go checkVersion(nil)
 
 	trayMenu := fyne.NewMenu("TrayMenu", fyne.NewMenuItem("打开主界面", func() {
 		mainWindow.Show()
@@ -113,7 +113,7 @@ func guiClientMode() (content fyne.CanvasObject) {
 	}
 
 	originMethodOpts := []string{
-		"指定的hosts源",
+		"官方指定hosts源",
 		"自定义hosts源",
 	}
 
@@ -126,7 +126,6 @@ func guiClientMode() (content fyne.CanvasObject) {
 
 	intervalForm := widget.NewFormItem("获取间隔(分钟)", intervalInput)
 	originSelectForm := widget.NewForm(widget.NewFormItem("hosts源", originSelect))
-
 	originCustomForm := widget.NewForm(widget.NewFormItem("远程hosts链接", urlInput))
 
 	if fetchConf.Client.Method == originMethodOpts[0] {
@@ -158,7 +157,7 @@ func guiClientMode() (content fyne.CanvasObject) {
 		originMethodForm,
 	)
 
-	startBtn = widget.NewButton("启动", func() {
+	startFetchExec := func() {
 		intervalInt := parseStrIsNumberNotShowAlert(&interval, "获取间隔必须为整数")
 		if intervalInt == nil {
 			return
@@ -174,26 +173,37 @@ func guiClientMode() (content fyne.CanvasObject) {
 		fetchConf.Client.CustomUrl = customUrl
 		fetchConf.Client.Interval = *intervalInt
 		fetchConf.Storage()
-	})
+	}
+
+	startBtn = widget.NewButton("启动", startFetchExec)
 	stopBtn = widget.NewButton("停止", func() {
 		stopBtn.Disable()
 		componentsStatusChange(true, startBtn, intervalInput, urlInput, originMethod, originSelect)
 		ticker.Stop()
 	})
-	stopBtn.Disable()
 
-	buttons := container.New(layout.NewGridLayout(3), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
-	        jsonurl := selectUrl
-		if isCustomOrigin {
-			jsonurl = customUrl
-		} 
-		if err := flushCleanGithubHosts(jsonurl); err != nil {
-			showAlert("清除hosts记录失败：" + err.Error())
-		} else {
-			showAlert("hosts文件中的记录已经清除成功！")
+	if fetchConf.Client.AutoFetch {
+		startFetchExec()
+		startBtn.Disable()
+	} else {
+		stopBtn.Disable()
+	}
+	autoFetchCheck := widget.NewCheck("启动软件自动获取", func(b bool) {
+		if b != fetchConf.Client.AutoFetch {
+			fetchConf.Client.AutoFetch = b
+			fetchConf.Storage()
+			showAlert("启动软件自动获取状态已改变，将会在下次启动程序时生效！")
 		}
-	}))
+	})
+	autoFetchCheck.SetChecked(fetchConf.Client.AutoFetch)
 
+	buttons := container.New(layout.NewGridLayout(4), startBtn, stopBtn, widget.NewButton("清除hosts", func() {
+		if err := flushCleanGithubHosts(); err != nil {
+			showAlert("清除hosts中的github记录失败：" + err.Error())
+		} else {
+			showAlert("hosts文件中的github记录已经清除成功！")
+		}
+	}), container.New(layout.NewCenterLayout(), autoFetchCheck))
 	return container.NewVBox(widget.NewLabel(""), form, originSelectForm, originCustomForm, buttons, logs)
 }
 
@@ -245,17 +255,15 @@ func guiServerMode() (content fyne.CanvasObject) {
 
 func guiAbout() (content fyne.CanvasObject) {
 	aboutNote := widget.NewRichTextFromMarkdown(`
-# MiniYun Hosts
-Hosts同步工具，解决部分网站无法访问或访问过慢问题。
+# 介绍
+Fetch Github Hosts是主要为解决研究及学习人员访问Github过慢或其他问题而提供的Github Hosts同步工具
+---
+# 开源协议
+GNU General Public License v3.0
 
-# 版本
-` + fmt.Sprintf("V%.1f", VERSION) +
+# 版本号
 
-`
-# Powered by Minijer
-基于Licoy开源fetch-github-hosts项目，非常感谢。
-
-如有问题，请联系Email:minijer@beta.gs`)
+` + fmt.Sprintf("V%.1f", VERSION))
 	for i := range aboutNote.Segments {
 		if seg, ok := aboutNote.Segments[i].(*widget.TextSegment); ok {
 			seg.Style.Alignment = fyne.TextAlignCenter
@@ -264,10 +272,70 @@ Hosts同步工具，解决部分网站无法访问或访问过慢问题。
 			seg.Alignment = fyne.TextAlignCenter
 		}
 	}
-
-	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout()))
+	github := widget.NewButton("Github", openUrl("https://github.com/Licoy/fetch-github-hosts"))
+	feedback := widget.NewButton("反馈建议", openUrl("https://github.com/Licoy/fetch-github-hosts/issues"))
+	var cv *widget.Button
+	cv = widget.NewButton("检查更新", func() {
+		checkVersion(cv)
+	})
+	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout(), container.NewHBox(github, feedback, cv)))
 }
 
+func checkVersion(btn *widget.Button) {
+	if btn != nil {
+		btn.Disable()
+		defer btn.Enable()
+	}
+	alertHandler := func(msg string) {
+		if btn != nil {
+			showAlert(msg)
+		}
+	}
+	resp, err := http.Get("https://api.github.com/repos/Licoy/fetch-github-hosts/releases")
+	if err != nil {
+		alertHandler("网络请求错误：" + err.Error())
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		alertHandler("请求失败，状态码为：" + err.Error())
+		return
+	}
+	all, err := io.ReadAll(resp.Body)
+	if err != nil {
+		alertHandler("读取更新响应内容失败：" + err.Error())
+		return
+	}
+	var releases []struct {
+		TagName string `json:"tag_name"`
+		HtmlUrl string `json:"html_url"`
+	}
+	if err = json.Unmarshal(all, &releases); err != nil {
+		alertHandler("解析更新响应内容失败：" + err.Error())
+		return
+	}
+	if len(releases) == 0 {
+		alertHandler("检查更新失败：" + err.Error())
+		return
+	}
+	verStr := strings.Replace(strings.Replace(releases[0].TagName, "v", "", 1), "V", "", 1)
+	float, err := strconv.ParseFloat(verStr, 64)
+	if err != nil {
+		alertHandler("解析版本号失败：" + err.Error())
+		return
+	}
+	if VERSION >= float {
+		alertHandler("当前已是最新版本")
+		return
+	}
+	confirm := dialog.NewConfirm("更新提示", "检测到有新的版本，是否立即需要去下载最新版本？", func(b bool) {
+		if b {
+			openUrl(releases[0].HtmlUrl)()
+		}
+	}, mainWindow)
+	confirm.SetDismissText("稍后更新")
+	confirm.SetConfirmText("立即去下载")
+	confirm.Show()
+}
 
 func showAlert(msg string) {
 	dialog.NewCustom("提示", "确认", widget.NewLabel(msg), mainWindow).Show()
