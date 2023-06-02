@@ -35,7 +35,8 @@ func (*fghGuiTheme) Color(c fyne.ThemeColorName, _ fyne.ThemeVariant) color.Colo
 		//#34364a
 		return color.RGBA{R: 0x34, G: 0x36, B: 0x4a, A: 0xff}
 	default:
-		return theme.DefaultTheme().Color(c, theme.VariantDark)
+//		return theme.DefaultTheme().Color(c, theme.VariantDark)
+	        return theme.DefaultTheme().Color(c, theme.VariantLight)
 	}
 }
 

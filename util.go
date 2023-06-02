@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	VERSION = 2.6
+	VERSION = 3.1
 )
 
 var (
