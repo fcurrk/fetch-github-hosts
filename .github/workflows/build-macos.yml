@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set env
-        run: echo "RELEASE_VERSION=v3.1.23.603" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=v3.1" >> $GITHUB_ENV
 
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -37,7 +37,7 @@ jobs:
             LICENSE
             README.md
             Fetch-Github-Hosts.app
-          outPath: fetch-github-hosts_macOS_amd64.tar.gz
+          outPath: fetch-github-hosts_${{ env.RELEASE_VERSION }}_macOS_amd64.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v1
@@ -45,6 +45,6 @@ jobs:
         with:
           draft: true
           append_body: true
-          files: fetch-github-hosts_macOS_amd64.tar.gz
+          files: fetch-github-hosts_${{ env.RELEASE_VERSION }}_macOS_amd64.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

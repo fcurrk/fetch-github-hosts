@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set env
-        run: echo "RELEASE_VERSION=v3.1.23.603" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=v3.1" >> $GITHUB_ENV
 
       - name: Install Docker
         run: curl -fsSL https://get.docker.com | bash -s docker
@@ -35,10 +35,10 @@ jobs:
         run: mkdir pkg-dist
 
       - name: Move Windows-amd64
-        run: mv fyne-cross/dist/windows-amd64/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_windows_amd64.zip
+        run: mv fyne-cross/dist/windows-amd64/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_amd64.zip
 
       - name: Move Windows-386
-        run: mv fyne-cross/dist/windows-386/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_windows_386.zip
+        run: mv fyne-cross/dist/windows-386/Fetch-Github-Hosts.exe.zip pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_386.zip
 
       - uses: actions/upload-artifact@v3
         with:
@@ -53,7 +53,7 @@ jobs:
           draft: true
           append_body: true
           files: |
-            pkg-dist/fetch-github-hosts_windows_amd64.zip
-            pkg-dist/fetch-github-hosts_windows_386.zip
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_amd64.zip
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_windows_386.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

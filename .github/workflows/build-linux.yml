@@ -12,7 +12,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set env
-        run: echo "RELEASE_VERSION=v3.1.23.603" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=v3.1" >> $GITHUB_ENV
 
       - name: Install Docker
         run: curl -fsSL https://get.docker.com | bash -s docker
@@ -35,16 +35,16 @@ jobs:
         run: mkdir pkg-dist
 
       - name: Move Linux-386
-        run: mv fyne-cross/dist/linux-386/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_linux_386.tar.xz
+        run: mv fyne-cross/dist/linux-386/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_386.tar.xz
 
       - name: Move Linux-amd64
-        run: mv fyne-cross/dist/linux-amd64/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_linux_amd64.tar.xz
+        run: mv fyne-cross/dist/linux-amd64/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_amd64.tar.xz
 
       - name: Move Linux-arm
-        run: mv fyne-cross/dist/linux-arm/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_linux_arm.tar.xz
+        run: mv fyne-cross/dist/linux-arm/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_arm.tar.xz
 
       - name: Move Linux-arm64
-        run: mv fyne-cross/dist/linux-arm64/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_linux_arm64.tar.xz
+        run: mv fyne-cross/dist/linux-arm64/Fetch-Github-Hosts.tar.xz pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_arm64.tar.xz
 
       - uses: actions/upload-artifact@v3
         with:
@@ -59,9 +59,9 @@ jobs:
           draft: true
           append_body: true
           files: |
-            pkg-dist/fetch-github-hosts_linux_386.tar.xz
-            pkg-dist/fetch-github-hosts_linux_amd64.tar.xz
-            pkg-dist/fetch-github-hosts_linux_arm.tar.xz
-            pkg-dist/fetch-github-hosts_linux_arm64.tar.xz
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_386.tar.xz
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_amd64.tar.xz
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_arm.tar.xz
+            pkg-dist/fetch-github-hosts_${{ env.RELEASE_VERSION }}_linux_arm64.tar.xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
