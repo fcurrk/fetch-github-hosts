@@ -1,8 +1,8 @@
-Website = "https://github.com/fcurrk/fetch-github-hosts"
+Website = "https://github.com/Licoy/fetch-github-hosts"
 
 [Details]
   Icon = "assets/public/logo.png"
   Name = "Fetch-Github-Hosts"
-  ID = "com.github.fcurrk.fetch-github-hosts"
-  Version = "3.1.23"
-  Build = 603
+  ID = "com.github.licoy.fetch-github-hosts"
+  Version = "2.7"
+  Build = 58
