@@ -21,24 +21,25 @@ const (
 )
 
 func startClient(ticker *FetchTicker, url string, flog *FetchLog) {
+        murl := url + "/hosts/hosts.txt" 
 	flog.Print(tfs(&i18n.Message{
 		ID:    "RemoteHostsUrlLog",
 		Other: "远程hosts获取链接: {{.Url}}",
 	}, map[string]interface{}{
-		"Url": url,
+		"Url": murl,
 	}))
 	fn := func() {
 		if err := ClientFetchHosts(url); err != nil {
 			flog.Print(tfs(&i18n.Message{
 				ID:    "RemoteHostsFetchErrorLog",
-				Other: "更新Github-Hosts失败: {{.E}}",
+				Other: "更新Hosts失败: {{.E}}",
 			}, map[string]interface{}{
 				"E": err.Error(),
 			}))
 		} else {
 			flog.Print(t(&i18n.Message{
 				ID:    "RemoteHostsFetchSuccessLog",
-				Other: "更新Github-Hosts成功！",
+				Other: "更新Hosts成功！",
 			}))
 		}
 	}
@@ -88,17 +89,18 @@ func startServer(ticker *FetchTicker, port int, flog *FetchLog) {
 	}))
 	go http.Serve(listen, &serverHandle{flog})
 	fn := func() {
-		if err := ServerFetchHosts(); err != nil {
+		jsonurl := fmt.Sprintf("http://127.0.0.1:%d/domains.json", port)
+		if err := ServerFetchHosts(jsonurl); err != nil {
 			flog.Print(tfs(&i18n.Message{
 				ID:    "ServerFetchHostsErrorLog",
-				Other: "执行更新Github-Hosts失败：{{.E}}",
+				Other: "执行更新Hosts失败：{{.E}}",
 			}, map[string]interface{}{
 				"E": err.Error(),
 			}))
 		} else {
 			flog.Print(t(&i18n.Message{
 				ID:    "ServerFetchHostsSuccessLog",
-				Other: "执行更新Github-Hosts成功！",
+				Other: "执行更新Hosts成功！",
 			}))
 		}
 	}
@@ -164,12 +166,12 @@ func (s *serverHandle) ServeHTTP(resp http.ResponseWriter, request *http.Request
 
 // ClientFetchHosts 获取最新的host并写入hosts文件
 func ClientFetchHosts(url string) (err error) {
-	hosts, err := getCleanGithubHosts()
+	hosts, err := getCleanGithubHosts(url)
 	if err != nil {
 		return
 	}
-
-	resp, err := http.Get(url)
+        murl := url + "/hosts/hosts.txt" 
+	resp, err := http.Get(murl)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		err = ComposeError(t(&i18n.Message{
 			ID:    "ClientFetchHostsGetErrorLog",
@@ -213,9 +215,9 @@ func ClientFetchHosts(url string) (err error) {
 }
 
 // ServerFetchHosts 服务端获取github最新的hosts并写入到对应文件及更新首页
-func ServerFetchHosts() (err error) {
+func ServerFetchHosts(url string) (err error) {
 	execDir := AppExecDir()
-	domains, err := getGithubDomains()
+	domains, err := getGithubDomains(url)
 	if err != nil {
 		return
 	}
@@ -224,7 +226,7 @@ func ServerFetchHosts() (err error) {
 	if err != nil {
 		err = ComposeError(t(&i18n.Message{
 			ID:    "FetchGithubHostsFail",
-			Other: "获取Github的Host失败",
+			Other: "获取Host失败",
 		}), err)
 		return
 	}
@@ -284,15 +286,15 @@ func FetchHosts(domains []string) (hostsJson, hostsFile []byte, now string, err 
 		hosts = append(hosts, item)
 		hostsFileData.WriteString(fmt.Sprintf("%-28s%s\n", item[0], item[1]))
 	}
-	hostsFileData.WriteString("# last fetch time: ")
+	hostsFileData.WriteString("# last update time: ")
 	hostsFileData.WriteString(now)
-	hostsFileData.WriteString("\n# update url: https://hosts.gitcdn.top/hosts.txt\n# fetch-github-hosts end\n\n")
+	hostsFileData.WriteString("\n# update url: http://106.52.55.138/hosts/hosts.txt\n# MiniYun-hosts end\n\n")
 	hostsFile = hostsFileData.Bytes()
 	hostsJson, err = json.Marshal(hosts)
 	return
 }
 
-func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
+func getCleanGithubHosts(url string) (hosts *bytes.Buffer, err error) {
 	hostsPath := GetSystemHostsPath()
 	hostsBytes, err := os.ReadFile(hostsPath)
 	if err != nil {
@@ -302,8 +304,8 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 		}), err)
 		return
 	}
-
-	domains, err := getGithubDomains()
+        dojson := url + "/hosts/domains.json"       
+	domains, err := getGithubDomains(dojson)
 	if err != nil {
 		return
 	}
@@ -339,8 +341,14 @@ func getCleanGithubHosts() (hosts *bytes.Buffer, err error) {
 	return
 }
 
-func getGithubDomains() (domains []string, err error) {
-	fileData, err := GetExecOrEmbedFile(&assetsFs, "assets/domains.json")
+func getGithubDomains(url string) (domains []string , err error) {
+	resp, err := http.Get(url)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		err = ComposeError("获取domains.json失败", err)
+		return
+	}
+
+	fetchData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		err = ComposeError(t(&i18n.Message{
 			ID:    "ReadDomainsJsonErr",
@@ -348,7 +356,7 @@ func getGithubDomains() (domains []string, err error) {
 		}), err)
 		return
 	}
-
+        fileData := []byte(string(fetchData))
 	if err = json.Unmarshal(fileData, &domains); err != nil {
 		err = ComposeError(t(&i18n.Message{
 			ID:    "ParseDomainsJsonErr",
@@ -359,8 +367,8 @@ func getGithubDomains() (domains []string, err error) {
 	return
 }
 
-func flushCleanGithubHosts() (err error) {
-	hosts, err := getCleanGithubHosts()
+func flushCleanGithubHosts(url string) (err error) {
+	hosts, err := getCleanGithubHosts(url)
 	if err != nil {
 		return
 	}

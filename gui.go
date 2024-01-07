@@ -28,20 +28,19 @@ var mainWindow fyne.Window
 var _fileLog *FetchLog
 
 func bootGui() {
-	logFile, err := os.OpenFile(AppExecDir()+"/fetch.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		_cliLog.Print(t(&i18n.Message{
-			ID:    "LogCreatedFail",
-			Other: "日志文件创建失败",
-		}))
-		return
-	}
-	_fileLog = &FetchLog{w: logFile}
+//	logFile, err := os.OpenFile(AppExecDir()+"/log.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+//	if err != nil {
+//		_cliLog.Print(t(&i18n.Message{
+//			ID:    "LogCreatedFail",
+//			Other: "日志文件创建失败",
+//		return
+//	}
+//	_fileLog = &FetchLog{w: logFile}
 	logoResource := getLogoResource()
 	a := app.New()
 	a.Settings().SetTheme(&fghGuiTheme{})
 
-	mainWindow = a.NewWindow(fmt.Sprintf("Fetch Github Hosts - V%.1f", VERSION))
+	mainWindow = a.NewWindow(fmt.Sprintf("MiniYun Hosts - V%.1f", VERSION))
 	mainWindow.Resize(fyne.NewSize(800, 580))
 	mainWindow.SetIcon(logoResource)
 
@@ -50,12 +49,12 @@ func bootGui() {
 	tabs := container.NewAppTabs(
 		container.NewTabItem(t(&i18n.Message{
 			ID:    "ClientMode",
-			Other: "客户端模式",
+			Other: "运行模式",
 		}), guiClientMode()),
-		container.NewTabItem(t(&i18n.Message{
-			ID:    "ServerMode",
-			Other: "服务端模式",
-		}), guiServerMode()),
+//		container.NewTabItem(t(&i18n.Message{
+//			ID:    "ServerMode",
+//			Other: "服务端模式",
+//		}), guiServerMode()),
 		container.NewTabItem(t(&i18n.Message{
 			ID:    "About",
 			Other: "关于",
@@ -67,7 +66,8 @@ func bootGui() {
 	)
 
 	mainWindow.SetCloseIntercept(func() {
-		mainWindow.Hide()
+	os.Exit(0)
+//		mainWindow.Hide()
 	})
 
 	mainWindow.CenterOnScreen()
@@ -79,7 +79,7 @@ func bootGui() {
 		})
 	}
 
-	go checkVersion(nil)
+//	go checkVersion(nil)
 
 	trayMenu := fyne.NewMenu("TrayMenu", fyne.NewMenuItem(t(&i18n.Message{
 		ID:    "OpenHome",
@@ -129,7 +129,7 @@ func guiClientMode() (content fyne.CanvasObject) {
 	originMethodOpts := []string{
 		t(&i18n.Message{
 			ID:    "HostsOptOfficial",
-			Other: "官方指定hosts源",
+			Other: "指定的hosts源",
 		}),
 		t(&i18n.Message{
 			ID:    "HostsOptCustom",
@@ -248,15 +248,19 @@ func guiClientMode() (content fyne.CanvasObject) {
 		ID:    "ClearHosts",
 		Other: "清除hosts",
 	}), func() {
-		if err := flushCleanGithubHosts(); err != nil {
+	        jsonurl := selectUrl
+		if isCustomOrigin {
+			jsonurl = customUrl
+		}
+		if err := flushCleanGithubHosts(jsonurl); err != nil {
 			showAlert(fmt.Sprintf("%s: %s", t(&i18n.Message{
 				ID:    "CleanGithubHostsFail",
-				Other: "清除hosts中的github记录失败",
+				Other: "清除hosts记录失败",
 			}), err.Error()))
 		} else {
 			showAlert(t(&i18n.Message{
 				ID:    "CleanGithubHostsSuccess",
-				Other: "hosts文件中的github记录已经清除成功",
+				Other: "hosts文件中的记录已经清除成功",
 			}))
 		}
 	}), container.New(layout.NewCenterLayout(), autoFetchCheck))
@@ -349,13 +353,15 @@ func guiAbout() (content fyne.CanvasObject) {
 %s
 `, t(&i18n.Message{
 		ID: "AboutContent",
-		Other: `# 介绍
-Fetch Github Hosts是主要为解决研究及学习人员访问Github过慢或其他问题而提供的Github Hosts同步工具
----
-# 开源协议
-GNU General Public License v3.0
+		Other: `# MiniYun Hosts
+Hosts同步工具，解决部分网站无法访问或访问过慢问题。
 
-# 版本号`,
+# Powered by Minijer
+基于Licoy开源fetch-github-hosts项目，非常感谢。
+
+如有问题，请联系Email:minijer@beta.gs
+
+# 版本`,
 	}), fmt.Sprintf("V%.1f", VERSION)))
 	for i := range aboutNote.Segments {
 		if seg, ok := aboutNote.Segments[i].(*widget.TextSegment); ok {
@@ -388,19 +394,20 @@ GNU General Public License v3.0
 		}))
 	})
 	originSelect.Selected = currentLang
-	github := widget.NewButton("Github", openUrl("https://github.com/Licoy/fetch-github-hosts"))
-	feedback := widget.NewButton(t(&i18n.Message{
-		ID:    "Feedback",
-		Other: "反馈建议",
-	}), openUrl("https://github.com/Licoy/fetch-github-hosts/issues"))
-	var cv *widget.Button
-	cv = widget.NewButton(t(&i18n.Message{
-		ID:    "CheckUpdate",
-		Other: "检查更新",
-	}), func() {
-		checkVersion(cv)
-	})
-	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout(), container.NewHBox(originSelect, github, feedback, cv)))
+//	github := widget.NewButton("Github", openUrl("https://github.com/Licoy/fetch-github-hosts"))
+//	feedback := widget.NewButton(t(&i18n.Message{
+//		ID:    "Feedback",
+//		Other: "反馈建议",
+//	}), openUrl("https://github.com/Licoy/fetch-github-hosts/issues"))
+//	var cv *widget.Button
+//	cv = widget.NewButton(t(&i18n.Message{
+//		ID:    "CheckUpdate",
+//		Other: "检查更新",
+//	}), func() {
+//		checkVersion(cv)
+//	})
+	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout(), container.NewHBox(originSelect)))
+//	return container.NewVBox(aboutNote, container.New(layout.NewCenterLayout(), container.NewHBox(originSelect, github, feedback, cv)))
 }
 
 func checkVersion(btn *widget.Button) {
